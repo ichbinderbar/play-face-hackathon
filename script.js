@@ -82,14 +82,15 @@ video.addEventListener("play", () => {
             document.body.style.backgroundColor = "purple";
             document.body.style.transition = "1s";
             displaySong(
-              "https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/playlists/729308781&color=%23ff5500&auto_play=true&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true"
+              "https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/255779264&color=%23ff5500&auto_play=true&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true"
             );
             break;
           case "neutral":
             document.body.style.backgroundColor = "grey";
             document.body.style.transition = "1s";
             displaySong(
-              "https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/98245809&color=%23ff5500&auto_play=true&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true"
+              "https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1406967964&color=%23ff5500&auto_play=true&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true"
+              // "https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/98245809&color=%23ff5500&auto_play=true&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true"
             );
             break;
           default:
