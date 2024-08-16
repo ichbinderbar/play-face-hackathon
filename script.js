@@ -1,31 +1,56 @@
+const playButton = document.getElementById("play");
 const video = document.getElementById("video");
+let isPlaying = false; // Track the state of the video
+let detectionInterval; // Store the interval ID for face detection
 
-Promise.all([
-  faceapi.nets.tinyFaceDetector.loadFromUri("./models"),
-  faceapi.nets.faceLandmark68Net.loadFromUri("./models"),
-  faceapi.nets.faceRecognitionNet.loadFromUri("./models"),
-  faceapi.nets.faceExpressionNet.loadFromUri("./models"),
-]).then(startVideo);
+playButton.addEventListener("click", () => {
+  if (isPlaying) {
+    stopVideo();
+  } else {
+    startVideo();
+  }
+  isPlaying = !isPlaying; // Toggle the play state
+  playButton.textContent = isPlaying ? "pause" : "detect my mood"; // Update button text
+});
 
 function startVideo() {
-  navigator.getUserMedia(
-    { video: {} },
-    (stream) => (video.srcObject = stream),
-    (error) => console.error(error)
-  );
+  Promise.all([
+    faceapi.nets.tinyFaceDetector.loadFromUri("./models"),
+    faceapi.nets.faceLandmark68Net.loadFromUri("./models"),
+    faceapi.nets.faceRecognitionNet.loadFromUri("./models"),
+    faceapi.nets.faceExpressionNet.loadFromUri("./models"),
+  ]).then(() => {
+    navigator.getUserMedia(
+      { video: {} },
+      (stream) => {
+        video.srcObject = stream;
+        video.play();
+
+        // Start detection after the video is loaded and starts playing
+        video.addEventListener("loadeddata", startDetection);
+      },
+      (error) => console.error(error)
+    );
+  });
 }
 
-startVideo();
+function stopVideo() {
+  const stream = video.srcObject;
+  if (stream) {
+    const tracks = stream.getTracks();
+    tracks.forEach((track) => track.stop()); // Stop all tracks to stop the video
+  }
+  video.pause();
+  stopDetection(); // Stop face detection
+}
 
-let prevEmotion = null;
-
-video.addEventListener("play", () => {
+function startDetection() {
   const canvas = faceapi.createCanvasFromMedia(video);
   document.body.append(canvas);
   const displaySize = { width: video.width, height: video.height };
   faceapi.matchDimensions(canvas, displaySize);
 
-  setInterval(async () => {
+  detectionInterval = setInterval(async () => {
     const detections = await faceapi
       .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
       .withFaceLandmarks()
@@ -82,23 +107,20 @@ video.addEventListener("play", () => {
             document.body.style.backgroundColor = "purple";
             document.body.style.transition = "1s";
             displaySong(
-              "https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/255779264&color=%23ff5500&auto_play=true&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true"
+              "https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/386248376&color=%23ff5500&auto_play=true&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true"
             );
             break;
-          case "neutral":
-            document.body.style.backgroundColor = "grey";
+          case "disgusted":
+            document.body.style.backgroundColor = "orange";
             document.body.style.transition = "1s";
             displaySong(
-              "https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1406967964&color=%23ff5500&auto_play=true&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true"
-              // "https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/98245809&color=%23ff5500&auto_play=true&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true"
+              "https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/925433074&color=%23ff5500&auto_play=true&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true"
             );
             break;
           default:
             document.body.style.backgroundColor = "black";
             document.body.style.transition = "1s";
-            displaySong(
-              "https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/573710472&color=%23ff5500&auto_play=true&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true"
-            );
+            displaySong();
             break;
         }
 
@@ -106,14 +128,20 @@ video.addEventListener("play", () => {
       }
     }
   }, 500);
-});
+}
 
-let playedSong = false;
+function stopDetection() {
+  clearInterval(detectionInterval); // Stop the interval for face detection
+  const canvas = document.querySelector("canvas");
+  if (canvas) {
+    canvas.remove(); // Remove the canvas from the document
+  }
+}
+
+let prevEmotion = null;
 
 function displaySong(highestEmotion) {
   let iFrame = document.querySelector("iframe");
   iFrame.style.display = "flex";
   iFrame.src = highestEmotion;
-
-  playedSong = true;
 }
